@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,19 +36,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -97,5 +91,54 @@
 
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+  }
+
+  /* Mobile-first responsive utilities */
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  .mobile-safe-top {
+    padding-top: env(safe-area-inset-top, 20px);
+  }
+
+  /* Smooth scrolling for mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Glass effect utilities */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20;
+  }
+}
+
+/* Mobile-specific animations */
+@media (max-width: 768px) {
+  .animate-mobile-slide-up {
+    animation: mobileSlideUp 0.3s ease-out;
+  }
+
+  @keyframes mobileSlideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* Ensure proper mobile viewport handling */
+@supports (-webkit-touch-callout: none) {
+  .mobile-viewport-fix {
+    min-height: -webkit-fill-available;
   }
 }

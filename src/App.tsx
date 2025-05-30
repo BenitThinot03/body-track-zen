@@ -22,9 +22,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SidebarProvider>
-          <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50">
+          <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
+            {/* Background pattern overlay */}
+            <div 
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }}
+            />
             <AppSidebar />
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1 overflow-auto relative">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/workouts" element={<Workouts />} />
