@@ -1,170 +1,132 @@
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
-// Users API
-export const usersApi = {
-  createUser: async (userData: any) => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+// Generic API request function
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  
+  const config: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  try {
+    const response = await fetch(url, config);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('API request failed:', error);
+    throw error;
+  }
+}
+
+// User API functions
+export const userApi = {
+  createUser: (userData: { email: string; passwordHash: string; name: string; age?: number; height?: number; weight?: number; fitnessGoal?: string; unitsPreference?: 'metric' | 'imperial' }) =>
+    apiRequest('/users', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData),
-    });
-    return response.json();
-  },
+    }),
   
-  getUsers: async () => {
-    const response = await fetch(`${API_BASE_URL}/users`);
-    return response.json();
-  },
+  getAllUsers: () =>
+    apiRequest('/users'),
 };
 
-// Exercises API
-export const exercisesApi = {
-  createExercise: async (exerciseData: any) => {
-    const response = await fetch(`${API_BASE_URL}/exercises`, {
+// Exercise API functions
+export const exerciseApi = {
+  createExercise: (exerciseData: { name: string; category: string; type: 'strength' | 'cardio' | 'flexibility'; videoUrl?: string }) =>
+    apiRequest('/exercises', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(exerciseData),
-    });
-    return response.json();
-  },
+    }),
   
-  getUserExercises: async (userId: string) => {
-    const response = await fetch(`${API_BASE_URL}/exercises/user/${userId}`);
-    return response.json();
-  },
+  getUserExercises: (userId: string) =>
+    apiRequest(`/exercises/user/${userId}`),
   
-  updateExercise: async (id: string, exerciseData: any) => {
-    const response = await fetch(`${API_BASE_URL}/exercises/${id}`, {
+  updateExercise: (id: string, exerciseData: Partial<{ name: string; category: string; type: string; videoUrl?: string }>) =>
+    apiRequest(`/exercises/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(exerciseData),
-    });
-    return response.json();
-  },
+    }),
   
-  deleteExercise: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/exercises/${id}`, {
+  deleteExercise: (id: string) =>
+    apiRequest(`/exercises/${id}`, {
       method: 'DELETE',
-    });
-    return response.json();
-  },
+    }),
 };
 
-// Workouts API
-export const workoutsApi = {
-  createWorkout: async (workoutData: any) => {
-    const response = await fetch(`${API_BASE_URL}/workouts`, {
+// Workout API functions
+export const workoutApi = {
+  createWorkout: (workoutData: { userId: string; date: string; duration?: number; caloriesBurned?: number; notes?: string; entries: Array<{ exerciseId: string; sets: number; reps: number; weight: number; notes?: string }> }) =>
+    apiRequest('/workouts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(workoutData),
-    });
-    return response.json();
-  },
+    }),
   
-  getUserWorkouts: async (userId: string) => {
-    const response = await fetch(`${API_BASE_URL}/workouts/user/${userId}`);
-    return response.json();
-  },
+  getUserWorkouts: (userId: string) =>
+    apiRequest(`/workouts/user/${userId}`),
   
-  updateWorkout: async (id: string, workoutData: any) => {
-    const response = await fetch(`${API_BASE_URL}/workouts/${id}`, {
+  updateWorkout: (id: string, workoutData: Partial<{ date: string; duration?: number; caloriesBurned?: number; notes?: string }>) =>
+    apiRequest(`/workouts/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(workoutData),
-    });
-    return response.json();
-  },
+    }),
   
-  deleteWorkout: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/workouts/${id}`, {
+  deleteWorkout: (id: string) =>
+    apiRequest(`/workouts/${id}`, {
       method: 'DELETE',
-    });
-    return response.json();
-  },
+    }),
 };
 
-// Measurements API
-export const measurementsApi = {
-  createMeasurement: async (measurementData: any) => {
-    const response = await fetch(`${API_BASE_URL}/measurements`, {
+// Measurement API functions
+export const measurementApi = {
+  createMeasurement: (measurementData: { userId: string; date: string; weight?: number; bodyFat?: number; waist?: number; chest?: number; arm?: number }) =>
+    apiRequest('/measurements', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(measurementData),
-    });
-    return response.json();
-  },
+    }),
   
-  getUserMeasurements: async (userId: string) => {
-    const response = await fetch(`${API_BASE_URL}/measurements/user/${userId}`);
-    return response.json();
-  },
+  getUserMeasurements: (userId: string) =>
+    apiRequest(`/measurements/user/${userId}`),
   
-  updateMeasurement: async (id: string, measurementData: any) => {
-    const response = await fetch(`${API_BASE_URL}/measurements/${id}`, {
+  updateMeasurement: (id: string, measurementData: Partial<{ date: string; weight?: number; bodyFat?: number; waist?: number; chest?: number; arm?: number }>) =>
+    apiRequest(`/measurements/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(measurementData),
-    });
-    return response.json();
-  },
+    }),
   
-  deleteMeasurement: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/measurements/${id}`, {
+  deleteMeasurement: (id: string) =>
+    apiRequest(`/measurements/${id}`, {
       method: 'DELETE',
-    });
-    return response.json();
-  },
+    }),
 };
 
-// Nutrition API
+// Nutrition API functions
 export const nutritionApi = {
-  createMeal: async (mealData: any) => {
-    const response = await fetch(`${API_BASE_URL}/nutrition`, {
+  createNutrition: (nutritionData: { userId: string; date: string; mealType: string; foodItems: any; calories: number; protein: number; carbs: number; fats: number; sugar?: number; vitamins?: any }) =>
+    apiRequest('/nutrition', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mealData),
-    });
-    return response.json();
-  },
+      body: JSON.stringify(nutritionData),
+    }),
   
-  getUserMeals: async (userId: string) => {
-    const response = await fetch(`${API_BASE_URL}/nutrition/user/${userId}`);
-    return response.json();
-  },
+  getUserNutrition: (userId: string) =>
+    apiRequest(`/nutrition/user/${userId}`),
   
-  updateMeal: async (id: string, mealData: any) => {
-    const response = await fetch(`${API_BASE_URL}/nutrition/${id}`, {
+  updateNutrition: (id: string, nutritionData: Partial<{ date: string; mealType: string; foodItems: any; calories: number; protein: number; carbs: number; fats: number; sugar?: number; vitamins?: any }>) =>
+    apiRequest(`/nutrition/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(mealData),
-    });
-    return response.json();
-  },
+      body: JSON.stringify(nutritionData),
+    }),
   
-  deleteMeal: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/nutrition/${id}`, {
+  deleteNutrition: (id: string) =>
+    apiRequest(`/nutrition/${id}`, {
       method: 'DELETE',
-    });
-    return response.json();
-  },
-};
-
-// OpenAI API for nutrition advice
-export const openaiApi = {
-  getChatResponse: async (messages: any[]) => {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer YOUR_OPENAI_API_KEY', // Replace with actual API key
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-vision-preview',
-        messages: messages,
-        max_tokens: 500,
-      }),
-    });
-    return response.json();
-  },
+    }),
 };

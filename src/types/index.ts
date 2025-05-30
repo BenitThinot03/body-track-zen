@@ -2,6 +2,7 @@
 export interface User {
   id: string;
   email: string;
+  passwordHash: string;
   name: string;
   age?: number;
   height?: number;
@@ -9,6 +10,10 @@ export interface User {
   fitnessGoal?: string;
   unitsPreference?: 'metric' | 'imperial';
   createdAt: string;
+  workoutSessions?: WorkoutSession[];
+  nutritionEntries?: NutritionEntry[];
+  measurements?: Measurement[];
+  aiMessages?: AIMessageLog[];
 }
 
 export interface WorkoutSession {
@@ -27,13 +32,14 @@ export interface Exercise {
   category: string;
   type: 'strength' | 'cardio' | 'flexibility';
   videoUrl?: string;
+  entries?: WorkoutEntry[];
 }
 
 export interface WorkoutEntry {
   id: string;
   workoutSessionId: string;
   exerciseId: string;
-  exercise: Exercise;
+  exercise?: Exercise;
   sets: number;
   reps: number;
   weight: number;

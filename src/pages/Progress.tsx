@@ -2,39 +2,87 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar, Loader2 } from "lucide-react";
+import { useMeasurements, useWorkouts, useNutrition } from "../hooks/useApiData";
 
 const Progress = () => {
-  // Mock data for charts
-  const weightData = [
-    { week: "Week 1", weight: 180, bodyFat: 18 },
-    { week: "Week 2", weight: 179, bodyFat: 17.8 },
-    { week: "Week 3", weight: 178, bodyFat: 17.5 },
-    { week: "Week 4", weight: 177, bodyFat: 17.2 },
-  ];
+  const { data: measurements = [], isLoading: measurementsLoading, error: measurementsError } = useMeasurements();
+  const { data: workouts = [], isLoading: workoutsLoading } = useWorkouts();
+  const { data: nutrition = [], isLoading: nutritionLoading } = useNutrition();
 
-  const caloriesData = [
-    { day: "Mon", calories: 320 },
-    { day: "Tue", calories: 280 },
-    { day: "Wed", calories: 410 },
-    { day: "Thu", calories: 350 },
-    { day: "Fri", calories: 390 },
-    { day: "Sat", calories: 450 },
-    { day: "Sun", calories: 300 },
-  ];
+  // Process measurements data for weight tracking
+  const weightData = measurements
+    .filter((m: any) => m.weight)
+    .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-8) // Last 8 measurements
+    .map((m: any, index: number) => ({
+      week: `Week ${index + 1}`,
+      weight: m.weight,
+      bodyFat: m.bodyFat || 0,
+    }));
 
+  // Process workout data for calories burned
+  const caloriesData = workouts
+    .slice(-7) // Last 7 workouts
+    .map((w: any, index: number) => ({
+      day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index] || `Day ${index + 1}`,
+      calories: w.caloriesBurned || 0,
+    }));
+
+  // Calculate protein data
+  const todayNutrition = nutrition.filter((n: any) => {
+    const today = new Date().toDateString();
+    const nutritionDate = new Date(n.date).toDateString();
+    return today === nutritionDate;
+  });
+
+  const totalProteinToday = todayNutrition.reduce((sum: number, n: any) => sum + (n.protein || 0), 0);
+  const proteinGoal = 150;
   const proteinData = [
-    { name: "Consumed", value: 120, color: "#3b82f6" },
-    { name: "Remaining", value: 30, color: "#e5e7eb" },
+    { name: "Consumed", value: Math.min(totalProteinToday, proteinGoal), color: "#3b82f6" },
+    { name: "Remaining", value: Math.max(proteinGoal - totalProteinToday, 0), color: "#e5e7eb" },
   ];
 
+  // Workout frequency data
   const workoutFrequencyData = [
     { month: "Jan", workouts: 12 },
     { month: "Feb", workouts: 15 },
     { month: "Mar", workouts: 18 },
     { month: "Apr", workouts: 20 },
-    { month: "May", workouts: 22 },
+    { month: "May", workouts: workouts.length },
   ];
+
+  // Calculate progress metrics
+  const latestWeight = measurements.length > 0 ? measurements[measurements.length - 1]?.weight : 0;
+  const previousWeight = measurements.length > 1 ? measurements[measurements.length - 2]?.weight : latestWeight;
+  const weightChange = latestWeight - previousWeight;
+  
+  const latestBodyFat = measurements.length > 0 ? measurements[measurements.length - 1]?.bodyFat : 0;
+  const previousBodyFat = measurements.length > 1 ? measurements[measurements.length - 2]?.bodyFat : latestBodyFat;
+  const bodyFatChange = latestBodyFat - previousBodyFat;
+
+  const avgCaloriesPerDay = workouts.length > 0 ? 
+    workouts.reduce((sum: number, w: any) => sum + (w.caloriesBurned || 0), 0) / workouts.length : 0;
+
+  if (measurementsLoading || workoutsLoading || nutritionLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+        <span className="ml-2">Loading progress data...</span>
+      </div>
+    );
+  }
+
+  if (measurementsError) {
+    return (
+      <div className="p-6">
+        <div className="text-center text-red-600">
+          <p>Error loading progress data. Please make sure your backend is running on http://localhost:5000</p>
+          <p className="text-sm mt-2">{(measurementsError as Error).message}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -66,10 +114,18 @@ const Progress = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Weight Change</p>
-                <p className="text-2xl font-bold text-slate-800">-3 lbs</p>
+                <p className="text-2xl font-bold text-slate-800">
+                  {weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg
+                </p>
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingDown className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-500">2.1% decrease</span>
+                  {weightChange < 0 ? (
+                    <TrendingDown className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <TrendingUp className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${weightChange < 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {Math.abs((weightChange / (previousWeight || 1)) * 100).toFixed(1)}% change
+                  </span>
                 </div>
               </div>
             </div>
@@ -81,10 +137,16 @@ const Progress = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Body Fat</p>
-                <p className="text-2xl font-bold text-slate-800">17.2%</p>
+                <p className="text-2xl font-bold text-slate-800">{latestBodyFat?.toFixed(1) || 0}%</p>
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingDown className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-500">0.8% decrease</span>
+                  {bodyFatChange <= 0 ? (
+                    <TrendingDown className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <TrendingUp className="w-4 h-4 text-red-500" />
+                  )}
+                  <span className={`text-sm ${bodyFatChange <= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {Math.abs(bodyFatChange).toFixed(1)}% change
+                  </span>
                 </div>
               </div>
             </div>
@@ -96,10 +158,10 @@ const Progress = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Avg Calories/Day</p>
-                <p className="text-2xl font-bold text-slate-800">357</p>
+                <p className="text-2xl font-bold text-slate-800">{avgCaloriesPerDay.toFixed(0)}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-blue-500">12% increase</span>
+                  <span className="text-sm text-blue-500">From {workouts.length} workouts</span>
                 </div>
               </div>
             </div>
@@ -110,11 +172,11 @@ const Progress = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Workout Streak</p>
-                <p className="text-2xl font-bold text-slate-800">7 days</p>
+                <p className="text-sm text-slate-600">Total Workouts</p>
+                <p className="text-2xl font-bold text-slate-800">{workouts.length}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <Calendar className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm text-orange-500">Personal best!</span>
+                  <span className="text-sm text-orange-500">Keep it up!</span>
                 </div>
               </div>
             </div>
@@ -141,7 +203,7 @@ const Progress = () => {
                   dataKey="weight" 
                   stroke="#3b82f6" 
                   strokeWidth={2}
-                  name="Weight (lbs)"
+                  name="Weight (kg)"
                 />
                 <Line 
                   yAxisId="right"
@@ -159,7 +221,7 @@ const Progress = () => {
         {/* Calories Burned */}
         <Card>
           <CardHeader>
-            <CardTitle>Weekly Calories Burned</CardTitle>
+            <CardTitle>Recent Calories Burned</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -198,8 +260,12 @@ const Progress = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute flex flex-col items-center">
-              <span className="text-2xl font-bold text-slate-800">80%</span>
-              <span className="text-sm text-slate-600">120g / 150g</span>
+              <span className="text-2xl font-bold text-slate-800">
+                {((totalProteinToday / proteinGoal) * 100).toFixed(0)}%
+              </span>
+              <span className="text-sm text-slate-600">
+                {totalProteinToday.toFixed(0)}g / {proteinGoal}g
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -240,8 +306,8 @@ const Progress = () => {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">Weight Loss Milestone</h4>
-                <p className="text-sm text-slate-600">Lost 3 pounds this month</p>
+                <h4 className="font-semibold text-slate-800">Workout Consistency</h4>
+                <p className="text-sm text-slate-600">Completed {workouts.length} workouts</p>
               </div>
             </div>
             
@@ -250,8 +316,8 @@ const Progress = () => {
                 <Calendar className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">Consistency Champion</h4>
-                <p className="text-sm text-slate-600">7-day workout streak</p>
+                <h4 className="font-semibold text-slate-800">Data Tracking</h4>
+                <p className="text-sm text-slate-600">{measurements.length} measurements recorded</p>
               </div>
             </div>
             
@@ -260,8 +326,8 @@ const Progress = () => {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-semibold text-slate-800">Protein Goal</h4>
-                <p className="text-sm text-slate-600">Hit daily target 5 days in a row</p>
+                <h4 className="font-semibold text-slate-800">Nutrition Tracking</h4>
+                <p className="text-sm text-slate-600">{nutrition.length} meals logged</p>
               </div>
             </div>
           </div>
