@@ -7,6 +7,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -46,24 +47,24 @@ export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar className="border-r border-white/10 bg-white/5 backdrop-blur-lg">
-      <div className="p-4 sm:p-6">
+    <Sidebar className="border-r border-blue-100">
+      <div className="p-6">
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Dumbbell className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white drop-shadow-md">FitTrack</h1>
-            <p className="text-sm text-blue-200">Welcome, Amsterdam</p>
+            <h1 className="text-xl font-bold text-slate-800">FitTrack</h1>
+            <p className="text-sm text-slate-500">Welcome, Amsterdam</p>
           </div>
         </div>
-        <SidebarTrigger className="mb-4 text-white hover:bg-white/10" />
+        <SidebarTrigger className="mb-4" />
       </div>
       
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-2">
+            <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
@@ -71,16 +72,9 @@ export function AppSidebar() {
                     isActive={location.pathname === item.url}
                     className="mb-1"
                   >
-                    <Link 
-                      to={item.url} 
-                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 ${
-                        location.pathname === item.url 
-                          ? 'bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-white border border-white/20 shadow-lg' 
-                          : 'text-blue-100 hover:bg-white/10 hover:text-white'
-                      }`}
-                    >
+                    <Link to={item.url} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors">
                       <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.title}</span>
+                      <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -90,12 +84,12 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="p-4 sm:p-6">
-        <div className="bg-gradient-to-r from-emerald-500/20 to-blue-500/20 backdrop-blur-sm rounded-lg p-4 mb-4 border border-white/10">
-          <h4 className="font-semibold text-white mb-1">Premium features unlocked</h4>
-          <p className="text-sm text-blue-200">Track unlimited workouts</p>
+      <SidebarFooter className="p-6">
+        <div className="bg-blue-50 rounded-lg p-4 mb-4">
+          <h4 className="font-semibold text-blue-900 mb-1">Premium features unlocked</h4>
+          <p className="text-sm text-blue-700">Track unlimited workouts</p>
         </div>
-        <Button variant="ghost" className="w-full justify-start gap-2 text-blue-200 hover:bg-white/10 hover:text-white">
+        <Button variant="ghost" className="w-full justify-start gap-2 text-slate-600">
           <LogOut className="w-4 h-4" />
           Logout
         </Button>
