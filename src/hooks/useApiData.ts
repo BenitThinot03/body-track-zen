@@ -8,7 +8,7 @@ const MOCK_USER_ID = 'user-123';
 
 // Workout hooks
 export const useWorkouts = () => {
-  return useQuery({
+  return useQuery<WorkoutSession[]>({
     queryKey: ['workouts', MOCK_USER_ID],
     queryFn: () => workoutApi.getUserWorkouts(MOCK_USER_ID),
   });
@@ -46,7 +46,7 @@ export const useDeleteWorkout = () => {
 
 // Exercise hooks
 export const useExercises = () => {
-  return useQuery({
+  return useQuery<Exercise[]>({
     queryKey: ['exercises', MOCK_USER_ID],
     queryFn: () => exerciseApi.getUserExercises(MOCK_USER_ID),
   });
@@ -84,7 +84,7 @@ export const useDeleteExercise = () => {
 
 // Nutrition hooks
 export const useNutrition = () => {
-  return useQuery({
+  return useQuery<NutritionEntry[]>({
     queryKey: ['nutrition', MOCK_USER_ID],
     queryFn: () => nutritionApi.getUserNutrition(MOCK_USER_ID),
   });
@@ -122,7 +122,7 @@ export const useDeleteNutrition = () => {
 
 // Measurement hooks
 export const useMeasurements = () => {
-  return useQuery({
+  return useQuery<Measurement[]>({
     queryKey: ['measurements', MOCK_USER_ID],
     queryFn: () => measurementApi.getUserMeasurements(MOCK_USER_ID),
   });
